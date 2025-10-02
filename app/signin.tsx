@@ -12,7 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function SignUpScreen() {
+export default function SignInScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,7 +29,7 @@ export default function SignUpScreen() {
     setIsEmailValid(validateEmail(text));
   };
 
-  const handleSignUp = async () => {
+  const handleSignIn = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
@@ -40,13 +40,8 @@ export default function SignUpScreen() {
       return;
     }
 
-    if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
-      return;
-    }
-
-    // TODO: Implement Supabase signup
-    Alert.alert('Success', 'Account created successfully!');
+    // TODO: Implement Supabase signin
+    Alert.alert('Success', 'Signed in successfully!');
     router.push('/(tabs)');
   };
 
@@ -54,8 +49,16 @@ export default function SignUpScreen() {
     router.back();
   };
 
-  const handleSocialLogin = (provider: string) => {
-    Alert.alert('Social Login', `${provider} login coming soon!`);
+  const handleForgotPassword = () => {
+    Alert.alert('Forgot Password', 'Password reset functionality coming soon!');
+  };
+
+  const handleCreateAccount = () => {
+    router.push('/signup');
+  };
+
+  const handleBiometricLogin = () => {
+    Alert.alert('Biometric Login', 'Face Lock or Touch Lock coming soon!');
   };
 
   return (
@@ -69,9 +72,9 @@ export default function SignUpScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Sign Up</Text>
-        <Text style={styles.description}>
-          Create an account so you can manage your personal finances
+        <Text style={styles.title}>Sign In</Text>
+        <Text style={styles.welcomeText}>
+          Welcome back! You can continue{'\n'}to manage your finances
         </Text>
       </View>
 
@@ -125,45 +128,34 @@ export default function SignUpScreen() {
         </View>
       </View>
 
-      {/* Sign Up Button */}
-      <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
-        <Text style={styles.signUpButtonText}>Create an account</Text>
+      {/* Forgot Password */}
+      <TouchableOpacity style={styles.forgotPasswordContainer} onPress={handleForgotPassword}>
+        <View style={styles.forgotPasswordCard}>
+          <Ionicons name="lock-closed" size={20} color="#000" />
+          <Text style={styles.forgotPasswordText}>Forgot your password?</Text>
+          <Text style={styles.chevronText}>&gt;&gt;</Text>
+        </View>
       </TouchableOpacity>
 
-      {/* Sign In Link */}
-      <View style={styles.signInContainer}>
-        <Text style={styles.signInText}>Already have an account? </Text>
-        <TouchableOpacity onPress={() => router.push('/signin')}>
-          <Text style={styles.signInLink}>Sign In</Text>
+      {/* Sign In Button */}
+      <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
+        <Text style={styles.signInButtonText}>Sign In</Text>
+      </TouchableOpacity>
+
+      {/* Create Account Button */}
+      <TouchableOpacity style={styles.createAccountButton} onPress={handleCreateAccount}>
+        <Text style={styles.createAccountText}>Create an account</Text>
+      </TouchableOpacity>
+
+      {/* Biometric Login */}
+      <View style={styles.biometricContainer}>
+        <Text style={styles.biometricText}>
+          Enable <Text style={styles.boldText}>Face Lock</Text> or <Text style={styles.boldText}>Touch Lock</Text>{'\n'}
+          for quick sign in
+        </Text>
+        <TouchableOpacity style={styles.biometricButton} onPress={handleBiometricLogin}>
+          <Ionicons name="finger-print" size={24} color="#007AFF" />
         </TouchableOpacity>
-      </View>
-
-      {/* Social Login */}
-      <View style={styles.socialContainer}>
-        <Text style={styles.socialText}>Or continue with social account</Text>
-
-        <View style={styles.socialButtons}>
-          <TouchableOpacity
-            style={styles.socialButton}
-            onPress={() => handleSocialLogin('Apple')}
-          >
-            <Ionicons name="logo-apple" size={24} color="#333" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.socialButton}
-            onPress={() => handleSocialLogin('Google')}
-          >
-            <Ionicons name="logo-google" size={24} color="#333" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.socialButton}
-            onPress={() => handleSocialLogin('Twitter')}
-          >
-            <Ionicons name="logo-twitter" size={24} color="#333" />
-          </TouchableOpacity>
-        </View>
       </View>
     </SafeAreaView>
   );
@@ -193,7 +185,7 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 12,
   },
-  description: {
+  welcomeText: {
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
@@ -201,7 +193,7 @@ const styles = StyleSheet.create({
   },
   form: {
     paddingHorizontal: 20,
-    marginBottom: 30,
+    marginBottom: 20,
   },
   inputContainer: {
     marginBottom: 20,
@@ -240,55 +232,78 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E5E5',
     marginTop: 8,
   },
-  signUpButton: {
+  forgotPasswordContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 30,
+  },
+  forgotPasswordCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5DC',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  forgotPasswordText: {
+    flex: 1,
+    fontSize: 16,
+    color: '#666',
+    marginLeft: 12,
+  },
+  chevronText: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: 'bold',
+  },
+  signInButton: {
     backgroundColor: '#000',
+    marginHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  signInButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  createAccountButton: {
+    backgroundColor: 'transparent',
     marginHorizontal: 20,
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 30,
   },
-  signUpButtonText: {
-    color: 'white',
+  createAccountText: {
+    color: '#000',
     fontSize: 16,
     fontWeight: '600',
   },
-  signInContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  signInText: {
-    fontSize: 14,
-    color: '#666',
-  },
-  signInLink: {
-    fontSize: 14,
-    color: '#007AFF',
-    fontWeight: '600',
-  },
-  socialContainer: {
+  biometricContainer: {
     alignItems: 'center',
     paddingHorizontal: 20,
   },
-  socialText: {
+  biometricText: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 20,
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 20,
   },
-  socialButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 24,
+  boldText: {
+    fontWeight: 'bold',
   },
-  socialButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#F5F5F5',
+  biometricButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#F0F8FF',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#007AFF',
+    borderStyle: 'dashed',
   },
 });
-
