@@ -6,8 +6,9 @@ import {
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useColorScheme } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export {
 	// Catch any errors thrown by the Layout component.
@@ -16,7 +17,7 @@ export {
 
 export const unstable_settings = {
 	// Ensure that reloading on `/modal` keeps a back button present.
-	initialRouteName: "(tabs)",
+	initialRouteName: "onboarding",
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -48,11 +49,34 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
 	const colorScheme = useColorScheme();
+	const [hasSeenOnboarding, setHasSeenOnboarding] = useState<boolean | null>(null);
+
+	useEffect(() => {
+		const checkOnboardingStatus = async () => {
+			try {
+				const value = await AsyncStorage.getItem('hasSeenOnboarding');
+				setHasSeenOnboarding(value === 'true');
+			} catch (error) {
+				console.error('Error checking onboarding status:', error);
+				setHasSeenOnboarding(false);
+			}
+		};
+
+		checkOnboardingStatus();
+	}, []);
+
+	if (hasSeenOnboarding === null) {
+		return null; // Still loading
+	}
 
 	return (
 		<ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
 			<Stack>
-				<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+				{!hasSeenOnboarding ? (
+					<Stack.Screen name="onboarding" options={{ headerShown: false }} />
+				) : (
+					<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+				)}
 				{/*<Stack.Screen name="modal" options={{ presentation: 'modal' }} />*/}
 			</Stack>
 		</ThemeProvider>
