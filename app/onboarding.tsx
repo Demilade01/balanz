@@ -6,23 +6,55 @@ import {
   Dimensions,
   TouchableOpacity,
   StatusBar,
+  Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 
 const { width, height } = Dimensions.get('window');
 
 export default function OnboardingScreen() {
   const router = useRouter();
+  const translateX = new Animated.Value(0);
 
   const handleGetStarted = async () => {
     try {
       await AsyncStorage.setItem('hasSeenOnboarding', 'true');
-      router.replace('/(tabs)');
+      router.push('/signup');
     } catch (error) {
       console.error('Error saving onboarding status:', error);
-      router.replace('/(tabs)');
+      router.push('/signup');
+    }
+  };
+
+  const onGestureEvent = Animated.event(
+    [{ nativeEvent: { translationX: translateX } }],
+    { useNativeDriver: true }
+  );
+
+  const onHandlerStateChange = (event: any) => {
+    if (event.nativeEvent.state === State.END) {
+      const { translationX, velocityX } = event.nativeEvent;
+
+      // If user swipes left (negative translationX) or has left velocity
+      if (translationX < -50 || velocityX < -500) {
+        // Animate the swipe and then navigate
+        Animated.timing(translateX, {
+          toValue: -width,
+          duration: 200,
+          useNativeDriver: true,
+        }).start(() => {
+          handleGetStarted();
+        });
+      } else {
+        // Snap back to original position
+        Animated.spring(translateX, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      }
     }
   };
 
@@ -30,60 +62,79 @@ export default function OnboardingScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
 
-      {/* Logo Section */}
-      <View style={styles.logoContainer}>
-        <View style={styles.logoIcon}>
-          <View style={styles.crescent} />
-        </View>
-        <Text style={styles.logoText}>Balanz</Text>
-      </View>
-
-      {/* Credit Card Illustration */}
-      <View style={styles.cardContainer}>
-        <LinearGradient
-          colors={['#4ECDC4', '#44A08D']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.card}
+      <PanGestureHandler
+        onGestureEvent={onGestureEvent}
+        onHandlerStateChange={onHandlerStateChange}
+      >
+        <Animated.View
+          style={[
+            styles.content,
+            {
+              transform: [{ translateX: translateX }]
+            }
+          ]}
         >
-          {/* Chip */}
-          <View style={styles.chip}>
-            <View style={styles.chipInner} />
+          {/* Logo Section */}
+          <View style={styles.logoContainer}>
+            <View style={styles.logoIcon}>
+              <View style={styles.crescent} />
+            </View>
+            <Text style={styles.logoText}>Balanz</Text>
           </View>
 
-          {/* Brand Logo */}
-          <View style={styles.brandLogo}>
-            <View style={styles.brandCrescent} />
+          {/* Credit Card Illustration */}
+          <View style={styles.cardContainer}>
+            <LinearGradient
+              colors={['#4ECDC4', '#44A08D']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.card}
+            >
+              {/* Chip */}
+              <View style={styles.chip}>
+                <View style={styles.chipInner} />
+              </View>
+
+              {/* Brand Logo */}
+              <View style={styles.brandLogo}>
+                <View style={styles.brandCrescent} />
+              </View>
+
+              {/* Card Number */}
+              <Text style={styles.cardNumber}>**** **** **** 1234</Text>
+
+              {/* Cardholder Name */}
+              <Text style={styles.cardholderName}>Balanz User</Text>
+            </LinearGradient>
           </View>
 
-          {/* Card Number */}
-          <Text style={styles.cardNumber}>**** **** **** 1234</Text>
+          {/* Content Section */}
+          <View style={styles.contentContainer}>
+            <Text style={styles.headline}>
+              Unify your{'\n'}Nigerian finances
+            </Text>
 
-          {/* Cardholder Name */}
-          <Text style={styles.cardholderName}>Balanz User</Text>
-        </LinearGradient>
-      </View>
+            <Text style={styles.description}>
+              Connect your bank accounts, track transactions, and manage your money all in one place.
+            </Text>
 
-      {/* Content Section */}
-      <View style={styles.contentContainer}>
-        <Text style={styles.headline}>
-          Unify your{'\n'}Nigerian finances
-        </Text>
+            {/* Navigation Arrows */}
+            <View style={styles.navigationContainer}>
+              <TouchableOpacity
+                style={styles.arrowButton}
+                onPress={handleGetStarted}
+              >
+                <Text style={styles.arrowText}>&gt;&gt;&gt;</Text>
+              </TouchableOpacity>
+            </View>
 
-        <Text style={styles.description}>
-          Connect your bank accounts, track transactions, and manage your money all in one place.
-        </Text>
-
-        {/* Navigation Arrows */}
-        <View style={styles.navigationContainer}>
-          <TouchableOpacity
-            style={styles.arrowButton}
-            onPress={handleGetStarted}
-          >
-            <Text style={styles.arrowText}>&gt;&gt;&gt;</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+            {/* Swipe Hint */}
+            <View style={styles.swipeHint}>
+              <Text style={styles.swipeText}>Swipe left to continue</Text>
+            </View>
+          </View>
+        </Animated.View>
+      </PanGestureHandler>
     </View>
   );
 }
@@ -92,6 +143,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a1a1a',
+  },
+  content: {
+    flex: 1,
   },
   logoContainer: {
     flexDirection: 'row',
@@ -216,5 +270,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#888',
     fontWeight: 'bold',
+  },
+  swipeHint: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  swipeText: {
+    fontSize: 14,
+    color: '#666',
+    opacity: 0.7,
   },
 });
