@@ -29,6 +29,14 @@ const HomeScreen = () => {
 				>
 					<Text style={styles.monoTestText}>Test Mono API</Text>
 				</TouchableOpacity>
+
+				{/* Connect Bank Button */}
+				<TouchableOpacity
+					style={[styles.monoTestButton, { backgroundColor: '#28A745' }]}
+					onPress={() => router.push('/connect-bank')}
+				>
+					<Text style={styles.monoTestText}>Connect Bank Account</Text>
+				</TouchableOpacity>
 			</ScrollView>
 		</View>
 	);

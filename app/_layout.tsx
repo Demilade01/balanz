@@ -80,6 +80,7 @@ function RootLayoutNav() {
 					<Stack.Screen name="otp" options={{ headerShown: false }} />
 					<Stack.Screen name="verification-success" options={{ headerShown: false }} />
 					<Stack.Screen name="mono-test" options={{ headerShown: false }} />
+					<Stack.Screen name="connect-bank" options={{ headerShown: false }} />
 					<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 					{/*<Stack.Screen name="modal" options={{ presentation: 'modal' }} />*/}
 				</Stack>
