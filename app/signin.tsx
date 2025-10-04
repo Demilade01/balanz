@@ -12,10 +12,11 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import Colors from '../constants/Colors';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { signIn, loading } = useAuth();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -25,6 +26,7 @@ export default function SignInScreen() {
   const [generalError, setGeneralError] = useState('');
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -73,6 +75,9 @@ export default function SignInScreen() {
     // If validation fails, don't proceed with authentication
     if (hasError) return;
 
+    // Only show loading after validation passes
+    setIsProcessing(true);
+
     try {
       // Attempt sign in
       const result = await signIn(email, password);
@@ -80,22 +85,33 @@ export default function SignInScreen() {
       if (!result.success) {
         // Handle authentication errors - show error immediately
         if (result.error?.includes('email') || result.error?.includes('Invalid login credentials')) {
-          setEmailError('Invalid email address');
+          setPasswordError('Incorrect password');
         } else if (result.error?.includes('password') || result.error?.includes('Invalid login credentials')) {
           setPasswordError('Incorrect password');
         } else if (result.error?.includes('verify your email')) {
           setGeneralError('Please verify your email before signing in');
         } else {
-          setGeneralError(result.error || 'Sign in failed. Please try again.');
+          setPasswordError('Sign in failed. Please check your credentials.');
         }
         return;
       }
 
-      // Success - AuthGuard will handle navigation
+      // Success - Hide loading and navigate to home screen
       console.log('Sign in successful');
+      setIsProcessing(false);
+
+      // Small delay to ensure loading overlay disappears before navigation
+      setTimeout(() => {
+        router.replace('/(tabs)/HomeScreen');
+      }, 100);
     } catch (error) {
       // Handle unexpected errors
-      setGeneralError('Something went wrong. Please try again.');
+      setPasswordError('Something went wrong. Please try again.');
+    } finally {
+      // Add a small delay to ensure error messages are displayed before hiding loading
+      setTimeout(() => {
+        setIsProcessing(false);
+      }, 500);
     }
   };
 
@@ -220,13 +236,11 @@ export default function SignInScreen() {
 
       {/* Sign In Button */}
       <TouchableOpacity
-        style={[styles.signInButton, loading && styles.disabledButton]}
+        style={styles.signInButton}
         onPress={handleSignIn}
-        disabled={loading}
+        disabled={isProcessing}
       >
-        <Text style={styles.signInButtonText}>
-          {loading ? 'Signing in...' : 'Sign In'}
-        </Text>
+        <Text style={styles.signInButtonText}>Sign In</Text>
       </TouchableOpacity>
 
       {/* Create Account Button */}
@@ -244,6 +258,9 @@ export default function SignInScreen() {
           <Ionicons name="finger-print" size={24} color={Colors.light.tint} />
         </TouchableOpacity>
       </View>
+
+      {/* Loading Overlay */}
+      <LoadingOverlay visible={isProcessing} message="Signing in..." />
     </SafeAreaView>
   );
 }
@@ -383,11 +400,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-  },
-  disabledButton: {
-    backgroundColor: Colors.light.textTertiary,
-    shadowOpacity: 0,
-    elevation: 0,
   },
   signInButtonText: {
     color: Colors.light.background,

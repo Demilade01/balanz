@@ -54,7 +54,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -74,8 +73,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         success: false,
         error: error instanceof Error ? error.message : 'Sign in failed'
       };
-    } finally {
-      setLoading(false);
     }
   };
 

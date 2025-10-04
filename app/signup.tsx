@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import Colors from '../constants/Colors';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -342,13 +343,11 @@ export default function SignUpScreen() {
 
       {/* Sign Up Button */}
       <TouchableOpacity
-        style={[styles.signUpButton, isLoading && styles.disabledButton]}
+        style={styles.signUpButton}
         onPress={handleSignUp}
         disabled={isLoading}
       >
-        <Text style={styles.signUpButtonText}>
-          {isLoading ? 'Creating account...' : 'Create Account'}
-        </Text>
+        <Text style={styles.signUpButtonText}>Create Account</Text>
       </TouchableOpacity>
 
       {/* Sign In Link */}
@@ -359,6 +358,8 @@ export default function SignUpScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Loading Overlay */}
+      <LoadingOverlay visible={isLoading} message="Creating account..." />
     </SafeAreaView>
   );
 }
