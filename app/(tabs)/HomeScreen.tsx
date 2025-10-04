@@ -5,11 +5,12 @@ import { useRouter } from "expo-router";
 import { useState, useCallback } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { syncService } from "../../lib/mono";
-import AppBar from "../../components/Home/AppBar";
-import UserFinance from "../../components/Home/UserFinance";
-import BalenceStats from "../../components/Home/BalenceStats";
-import TransferList from "../../components/Home/TransferList";
-import ExchangeStats from "../../components/Home/ExchangeStats";
+
+// Modern components
+import ModernHeader from "../../components/Home/ModernHeader";
+import BalanceCard from "../../components/Home/BalanceCard";
+import QuickActions from "../../components/Home/QuickActions";
+import AccountCards from "../../components/Home/AccountCards";
 import RecentTransactions from "../../components/Home/RecentTransactions";
 
 const HomeScreen = () => {
@@ -34,20 +35,33 @@ const HomeScreen = () => {
 	return (
 		<View style={styles.container}>
 			<StatusBar style={"light"} />
-			<AppBar />
+
+			{/* Modern Header */}
+			<ModernHeader />
+
 			<ScrollView
+				style={styles.scrollView}
+				contentContainerStyle={styles.scrollContent}
 				refreshControl={
-					<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+					<RefreshControl
+						refreshing={refreshing}
+						onRefresh={onRefresh}
+						tintColor={Colors.light.tint}
+					/>
 				}
+				showsVerticalScrollIndicator={false}
 			>
-				<UserFinance />
-				<BalenceStats />
+				{/* Balance Card */}
+				<BalanceCard />
+
+				{/* Quick Actions */}
+				<QuickActions />
+
+				{/* Account Cards */}
+				<AccountCards />
 
 				{/* Recent Transactions */}
 				<RecentTransactions />
-
-				<TransferList />
-				<ExchangeStats />
 
 				{/* Development Tools */}
 				<View style={styles.devToolsContainer}>
@@ -61,7 +75,7 @@ const HomeScreen = () => {
 					</TouchableOpacity>
 
 					<TouchableOpacity
-						style={[styles.monoTestButton, { backgroundColor: '#28A745' }]}
+						style={[styles.monoTestButton, { backgroundColor: Colors.light.success }]}
 						onPress={() => router.push('/connect-bank')}
 					>
 						<Text style={styles.monoTestText}>Connect Bank Account</Text>
@@ -77,23 +91,30 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: Colors.light.background,
 	},
+	scrollView: {
+		flex: 1,
+	},
+	scrollContent: {
+		paddingBottom: 100, // Space for tab bar
+	},
 	devToolsContainer: {
 		margin: 20,
+		marginTop: 30,
 		padding: 16,
-		backgroundColor: '#F8F9FA',
+		backgroundColor: Colors.light.cardBackground,
 		borderRadius: 12,
 		borderWidth: 1,
-		borderColor: '#E5E5E5',
+		borderColor: Colors.light.borderColor,
 	},
 	devToolsTitle: {
 		fontSize: 16,
 		fontWeight: '600',
-		color: '#666',
+		color: Colors.light.textSecondary,
 		marginBottom: 12,
 		textAlign: 'center',
 	},
 	monoTestButton: {
-		backgroundColor: '#007AFF',
+		backgroundColor: Colors.light.info,
 		marginVertical: 8,
 		padding: 16,
 		borderRadius: 8,
