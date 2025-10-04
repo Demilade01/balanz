@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { monoAPI } from '../lib/mono';
+import { monoAPI, syncService } from '../lib/mono';
 
 export default function MonoTestScreen() {
   const router = useRouter();
@@ -74,18 +74,30 @@ export default function MonoTestScreen() {
     }
   };
 
+  const testSyncService = async () => {
+    setIsLoading(true);
+    setTestResults(null);
+
+    try {
+      const result = await syncService.testConnection();
+      setTestResults(result);
+
+      if (result.success) {
+        Alert.alert('Success', 'Sync service connection successful!');
+      } else {
+        Alert.alert('Error', `Sync service test failed: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      Alert.alert('Error', `Failed to test sync service: ${errorMessage}`);
+      setTestResults({ success: false, error: errorMessage });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const connectBankAccount = () => {
-    Alert.alert(
-      'Connect Bank Account',
-      'This will open the Mono Connect widget to link your bank account.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Connect', onPress: () => {
-          // TODO: Implement Mono Connect widget
-          Alert.alert('Coming Soon', 'Mono Connect widget integration coming soon!');
-        }}
-      ]
-    );
+    router.push('/connect-bank');
   };
 
   return (
@@ -168,6 +180,22 @@ export default function MonoTestScreen() {
           )}
         </View>
 
+        {/* Sync Service Test */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Sync Service Test</Text>
+          <TouchableOpacity
+            style={[styles.button, styles.secondaryButton, isLoading && styles.disabledButton]}
+            onPress={testSyncService}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#007AFF" />
+            ) : (
+              <Text style={[styles.buttonText, styles.secondaryButtonText]}>Test Sync Service</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
         {/* Connect Account */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Connect New Account</Text>
@@ -183,10 +211,11 @@ export default function MonoTestScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Instructions</Text>
           <Text style={styles.instructionText}>
-            1. Make sure you have valid Mono API keys in your environment{'\n'}
-            2. Test the API connection first{'\n'}
+            1. Test the Mono API connection first{'\n'}
+            2. Test the Sync Service connection{'\n'}
             3. Connect a bank account using Mono Connect{'\n'}
-            4. Fetch and view your accounts
+            4. Fetch and view your accounts{'\n'}
+            5. Check the database for synced data
           </Text>
         </View>
       </ScrollView>

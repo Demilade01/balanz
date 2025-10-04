@@ -10,6 +10,8 @@ import { useEffect, useState } from "react";
 import { useColorScheme } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { AuthProvider } from "../contexts/AuthContext";
+import { AuthGuard } from "../components/AuthGuard";
 
 export {
 	// Catch any errors thrown by the Layout component.
@@ -50,40 +52,25 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
 	const colorScheme = useColorScheme();
-	const [hasSeenOnboarding, setHasSeenOnboarding] = useState<boolean | null>(null);
-
-	useEffect(() => {
-		const checkOnboardingStatus = async () => {
-			try {
-				const value = await AsyncStorage.getItem('hasSeenOnboarding');
-				setHasSeenOnboarding(value === 'true');
-			} catch (error) {
-				console.error('Error checking onboarding status:', error);
-				setHasSeenOnboarding(false);
-			}
-		};
-
-		checkOnboardingStatus();
-	}, []);
-
-	if (hasSeenOnboarding === null) {
-		return null; // Still loading
-	}
 
 	return (
 		<GestureHandlerRootView style={{ flex: 1 }}>
 			<ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-				<Stack>
-					<Stack.Screen name="onboarding" options={{ headerShown: false }} />
-					<Stack.Screen name="signin" options={{ headerShown: false }} />
-					<Stack.Screen name="signup" options={{ headerShown: false }} />
-					<Stack.Screen name="otp" options={{ headerShown: false }} />
-					<Stack.Screen name="verification-success" options={{ headerShown: false }} />
-					<Stack.Screen name="mono-test" options={{ headerShown: false }} />
-					<Stack.Screen name="connect-bank" options={{ headerShown: false }} />
-					<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-					{/*<Stack.Screen name="modal" options={{ presentation: 'modal' }} />*/}
-				</Stack>
+				<AuthProvider>
+					<AuthGuard>
+						<Stack>
+							<Stack.Screen name="onboarding" options={{ headerShown: false }} />
+							<Stack.Screen name="signin" options={{ headerShown: false }} />
+							<Stack.Screen name="signup" options={{ headerShown: false }} />
+							<Stack.Screen name="otp" options={{ headerShown: false }} />
+							<Stack.Screen name="verification-success" options={{ headerShown: false }} />
+							<Stack.Screen name="mono-test" options={{ headerShown: false }} />
+							<Stack.Screen name="connect-bank" options={{ headerShown: false }} />
+							<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+							{/*<Stack.Screen name="modal" options={{ presentation: 'modal' }} />*/}
+						</Stack>
+					</AuthGuard>
+				</AuthProvider>
 			</ThemeProvider>
 		</GestureHandlerRootView>
 	);

@@ -1,8 +1,35 @@
-import {View, StyleSheet, Text, Image} from "react-native";
+import {View, StyleSheet, Text, Image, TouchableOpacity, Alert} from "react-native";
 import {Feather, Ionicons} from "@expo/vector-icons";
+import { useAuth } from "../../contexts/AuthContext";
 
 
 const AppBar = () => {
+    const { user, signOut } = useAuth();
+
+    const handleSignOut = () => {
+        Alert.alert(
+            'Sign Out',
+            'Are you sure you want to sign out?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Sign Out',
+                    style: 'destructive',
+                    onPress: async () => {
+                        await signOut();
+                    }
+                }
+            ]
+        );
+    };
+
+    const getUserDisplayName = () => {
+        if (user?.email) {
+            return user.email.split('@')[0];
+        }
+        return 'User';
+    };
+
     return (
         <View style={styles.appBar}>
             <View style={styles.leftContainer}>
@@ -19,15 +46,15 @@ const AppBar = () => {
                     fontSize: 18,
                     fontWeight: 'bold'
                 }}>
-                    Mitchel W
+                    {getUserDisplayName()}
                 </Text>
             </View>
             <View style={styles.rightContainer}>
                 <Feather name={"search"} size={24} color={"#fff"}/>
                 <Feather name={"bell"} size={24} color={"#fff"}/>
-                <View style={styles.btn}>
-                    <Ionicons name={"scan-outline"} size={24} color={"#fff"}/>
-                </View>
+                <TouchableOpacity style={styles.btn} onPress={handleSignOut}>
+                    <Ionicons name={"log-out-outline"} size={24} color={"#fff"}/>
+                </TouchableOpacity>
             </View>
         </View>
     )

@@ -12,12 +12,14 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { monoAPI } from '../lib/mono';
+import { monoAPI, syncService } from '../lib/mono';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MonoProvider, useMonoConnect } from '@mono.co/connect-react-native';
+import { useAuth } from '../contexts/AuthContext';
 
 function ConnectBankScreenContent() {
   const router = useRouter();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectedAccounts, setConnectedAccounts] = useState<any[]>([]);
@@ -65,37 +67,58 @@ function ConnectBankScreenContent() {
     setIsConnecting(false);
 
     try {
-      // Store the connection data
-      const connectionData = {
-        id: data.id,
-        accountId: data.id,
-        institution: { name: 'Bank Account' },
-        connectedAt: new Date().toISOString(),
-        code: data.id, // Use the ID as the authorization code
-      };
+      if (!user?.id) {
+        Alert.alert('Error', 'User not authenticated');
+        return;
+      }
 
-      console.log('Saving connection data:', connectionData);
+      console.log('Exchanging code and syncing with Supabase...');
 
-      // Save to AsyncStorage
-      const existingAccounts = await AsyncStorage.getItem('connected_accounts');
-      const accounts = existingAccounts ? JSON.parse(existingAccounts) : [];
-      accounts.push(connectionData);
-      await AsyncStorage.setItem('connected_accounts', JSON.stringify(accounts));
+      // Use the new sync service to exchange code and sync to Supabase
+      const syncResult = await syncService.exchangeCodeAndSync(data.id, user.id);
 
-      // Update state
-      setConnectedAccounts(accounts);
+      if (syncResult.success) {
+        console.log('Sync successful:', syncResult.data);
 
-      Alert.alert(
-        'Success!',
-        'Bank account connected successfully!',
-        [
-          { text: 'View Accounts', onPress: () => router.back() },
-          { text: 'OK', style: 'cancel' }
-        ]
-      );
+        // Type assertion for sync result data
+        const syncData = syncResult.data as any;
+
+        // Also store locally for backward compatibility
+        const connectionData = {
+          id: data.id,
+          accountId: data.id,
+          institution: { name: 'Bank Account' },
+          connectedAt: new Date().toISOString(),
+          code: data.id,
+          supabaseAccountId: syncData.account?.id,
+        };
+
+        const existingAccounts = await AsyncStorage.getItem('connected_accounts');
+        const accounts = existingAccounts ? JSON.parse(existingAccounts) : [];
+        accounts.push(connectionData);
+        await AsyncStorage.setItem('connected_accounts', JSON.stringify(accounts));
+
+        setConnectedAccounts(accounts);
+
+        Alert.alert(
+          'Success!',
+          `Bank account connected and synced successfully!\\n\\nAccount: ${syncData.account?.account_name}\\nBank: ${syncData.account?.bank_name}\\nBalance: ₦${(syncData.account?.balance || 0) / 100}`,
+          [
+            { text: 'View Accounts', onPress: () => router.back() },
+            { text: 'OK', style: 'cancel' }
+          ]
+        );
+      } else {
+        console.error('Sync failed:', syncResult.error);
+        Alert.alert(
+          'Connection Error',
+          `Failed to sync with database: ${syncResult.error}\\n\\nThe account was connected to Mono but not saved to our database. Please try syncing again.`,
+          [{ text: 'OK' }]
+        );
+      }
     } catch (error) {
-      console.error('Error saving connection:', error);
-      Alert.alert('Error', 'Failed to save connection data');
+      console.error('Error during connection:', error);
+      Alert.alert('Error', 'Failed to process connection. Please try again.');
     }
   };
 
@@ -129,26 +152,30 @@ function ConnectBankScreenContent() {
     setIsLoading(true);
 
     try {
-      // Use the stored authorization codes to fetch account details
-      const accountPromises = connectedAccounts.map(async (account) => {
-        if (account.code) {
-          // Exchange the code for account details
-          const result = await monoAPI.getAccountByCode(account.code);
-          return result;
-        }
-        return null;
-      });
+      if (!user?.id) {
+        Alert.alert('Error', 'User not authenticated');
+        return;
+      }
 
-      const results = await Promise.all(accountPromises);
-      const successfulResults = results.filter(r => r && r.success);
+      console.log('Starting account sync...');
 
-      Alert.alert(
-        'Sync Complete',
-        `Successfully synced ${successfulResults.length} of ${connectedAccounts.length} accounts`
-      );
+      // Use the new sync service to sync all accounts
+      const syncResult = await syncService.syncUserAccounts(user.id);
 
-      // Reload accounts to update UI
-      await loadConnectedAccounts();
+      if (syncResult.success) {
+        const syncData = syncResult.data as any;
+        const summary = syncData.summary;
+        Alert.alert(
+          'Sync Complete',
+          `Successfully synced ${summary.accountsSuccessful}/${summary.accountsProcessed} accounts with ${summary.totalTransactions} transactions`
+        );
+
+        // Reload accounts to update UI
+        await loadConnectedAccounts();
+      } else {
+        console.error('Sync failed:', syncResult.error);
+        Alert.alert('Sync Error', `Failed to sync accounts: ${syncResult.error}`);
+      }
     } catch (error) {
       console.error('Error syncing accounts:', error);
       Alert.alert('Error', 'Failed to sync accounts');

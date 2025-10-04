@@ -11,15 +11,15 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function SignInScreen() {
   const router = useRouter();
+  const { signIn, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isEmailValid, setIsEmailValid] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -42,34 +42,15 @@ export default function SignInScreen() {
       return;
     }
 
-    setIsLoading(true);
+    const result = await signIn(email, password);
 
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password,
-      });
-
-      if (error) {
-        Alert.alert('Error', error.message);
-        return;
-      }
-
-      if (data.user) {
-        // Check if email is verified
-        if (!data.user.email_confirmed_at) {
-          Alert.alert('Error', 'Please verify your email before signing in');
-          return;
-        }
-
-        // Navigate to main app
-        router.push('/HomeScreen');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Something went wrong. Please try again.');
-    } finally {
-      setIsLoading(false);
+    if (!result.success) {
+      Alert.alert('Error', result.error || 'Sign in failed');
+      return;
     }
+
+    // Success - AuthGuard will handle navigation
+    console.log('Sign in successful');
   };
 
   const handleBack = () => {
@@ -166,12 +147,12 @@ export default function SignInScreen() {
 
       {/* Sign In Button */}
       <TouchableOpacity
-        style={[styles.signInButton, isLoading && styles.disabledButton]}
+        style={[styles.signInButton, loading && styles.disabledButton]}
         onPress={handleSignIn}
-        disabled={isLoading}
+        disabled={loading}
       >
         <Text style={styles.signInButtonText}>
-          {isLoading ? 'Signing in...' : 'Sign In'}
+          {loading ? 'Signing in...' : 'Sign In'}
         </Text>
       </TouchableOpacity>
 
