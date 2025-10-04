@@ -75,7 +75,11 @@ function RootLayoutNav() {
 			<ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
 				<Stack>
 					<Stack.Screen name="onboarding" options={{ headerShown: false }} />
+					<Stack.Screen name="signin" options={{ headerShown: false }} />
 					<Stack.Screen name="signup" options={{ headerShown: false }} />
+					<Stack.Screen name="otp" options={{ headerShown: false }} />
+					<Stack.Screen name="verification-success" options={{ headerShown: false }} />
+					<Stack.Screen name="mono-test" options={{ headerShown: false }} />
 					<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 					{/*<Stack.Screen name="modal" options={{ presentation: 'modal' }} />*/}
 				</Stack>
