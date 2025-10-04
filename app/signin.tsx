@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../lib/supabase';
 
 export default function SignInScreen() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function SignInScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isEmailValid, setIsEmailValid] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -40,9 +42,34 @@ export default function SignInScreen() {
       return;
     }
 
-    // TODO: Implement Supabase signin
-    Alert.alert('Success', 'Signed in successfully!');
-    router.push('/(tabs)');
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (error) {
+        Alert.alert('Error', error.message);
+        return;
+      }
+
+      if (data.user) {
+        // Check if email is verified
+        if (!data.user.email_confirmed_at) {
+          Alert.alert('Error', 'Please verify your email before signing in');
+          return;
+        }
+
+        // Navigate to main app
+        router.push('/HomeScreen');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBack = () => {
@@ -138,8 +165,14 @@ export default function SignInScreen() {
       </TouchableOpacity>
 
       {/* Sign In Button */}
-      <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
-        <Text style={styles.signInButtonText}>Sign In</Text>
+      <TouchableOpacity
+        style={[styles.signInButton, isLoading && styles.disabledButton]}
+        onPress={handleSignIn}
+        disabled={isLoading}
+      >
+        <Text style={styles.signInButtonText}>
+          {isLoading ? 'Signing in...' : 'Sign In'}
+        </Text>
       </TouchableOpacity>
 
       {/* Create Account Button */}
@@ -262,6 +295,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 20,
+  },
+  disabledButton: {
+    backgroundColor: '#666',
   },
   signInButtonText: {
     color: 'white',

@@ -22,10 +22,10 @@ export default function OnboardingScreen() {
   const handleGetStarted = async () => {
     try {
       await AsyncStorage.setItem('hasSeenOnboarding', 'true');
-      router.push('/signup');
+      router.push('/signin');
     } catch (error) {
       console.error('Error saving onboarding status:', error);
-      router.push('/signup');
+      router.push('/signin');
     }
   };
 

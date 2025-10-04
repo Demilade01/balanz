@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../lib/supabase';
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isEmailValid, setIsEmailValid] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -45,9 +47,41 @@ export default function SignUpScreen() {
       return;
     }
 
-    // TODO: Implement Supabase signup
-    Alert.alert('Success', 'Account created successfully!');
-    router.push('/(tabs)');
+    setIsLoading(true);
+
+    try {
+      // Create account with email/password and email confirmation
+      const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          emailRedirectTo: 'balanz://auth/callback',
+        },
+      });
+
+      if (error) {
+        Alert.alert('Error', error.message);
+        return;
+      }
+
+      if (data.user) {
+        // Check if email confirmation is required
+        if (data.user.email_confirmed_at) {
+          // Email already confirmed, go to main app
+          router.push('/(tabs)');
+        } else {
+          // Email confirmation required, navigate to OTP screen
+          router.push({
+            pathname: '/otp',
+            params: { email: email }
+          });
+        }
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBack = () => {
@@ -126,8 +160,14 @@ export default function SignUpScreen() {
       </View>
 
       {/* Sign Up Button */}
-      <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
-        <Text style={styles.signUpButtonText}>Create an account</Text>
+      <TouchableOpacity
+        style={[styles.signUpButton, isLoading && styles.disabledButton]}
+        onPress={handleSignUp}
+        disabled={isLoading}
+      >
+        <Text style={styles.signUpButtonText}>
+          {isLoading ? 'Creating account...' : 'Create an account'}
+        </Text>
       </TouchableOpacity>
 
       {/* Sign In Link */}
@@ -247,6 +287,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 30,
+  },
+  disabledButton: {
+    backgroundColor: '#666',
   },
   signUpButtonText: {
     color: 'white',
