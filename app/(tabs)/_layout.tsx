@@ -1,14 +1,8 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { Link, Tabs } from "expo-router";
-import { Pressable, useColorScheme } from "react-native";
+import { Tabs } from "expo-router";
+import { useColorScheme } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 import Colors from "../../constants/Colors";
-import {
-	AntDesign,
-	Feather,
-	Ionicons,
-	MaterialIcons,
-} from "@expo/vector-icons";
 
 export default function TabLayout() {
 	const colorScheme = useColorScheme();
@@ -17,53 +11,87 @@ export default function TabLayout() {
 		<Tabs
 			screenOptions={{
 				tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
-				tabBarShowLabel: false,
+				tabBarInactiveTintColor: "#8E8E93",
+				tabBarShowLabel: true,
+				tabBarLabelStyle: {
+					fontSize: 11,
+					fontWeight: "500",
+					marginTop: 2,
+				},
 				headerShown: false,
 				tabBarStyle: {
 					backgroundColor: Colors[colorScheme ?? "light"].background,
-					borderTopColor: Colors[colorScheme ?? "light"].background,
-					height: 56,
-					paddingVertical: 6,
+					borderTopColor: "#E5E5EA",
+					borderTopWidth: 0.5,
+					height: 85,
+					paddingTop: 8,
+					paddingBottom: 8,
+					paddingHorizontal: 16,
 				},
 			}}
 		>
 			<Tabs.Screen
 				name="HomeScreen"
 				options={{
-					tabBarIcon: ({ color }) => (
-						<AntDesign name={"home"} size={25} color={color} />
+					title: "Home",
+					tabBarIcon: ({ color, focused }) => (
+						<Ionicons
+							name={focused ? "home" : "home-outline"}
+							size={24}
+							color={color}
+						/>
 					),
 				}}
 			/>
 			<Tabs.Screen
 				name="CardScreen"
 				options={{
-					tabBarIcon: ({ color }) => (
-						<Feather name={"credit-card"} size={25} color={color} />
+					title: "Cards",
+					tabBarIcon: ({ color, focused }) => (
+						<Ionicons
+							name={focused ? "card" : "card-outline"}
+							size={24}
+							color={color}
+						/>
 					),
 				}}
 			/>
 			<Tabs.Screen
 				name="ChartScreen"
 				options={{
-					tabBarIcon: ({ color }) => (
-						<AntDesign name={"linechart"} size={25} color={color} />
+					title: "Analytics",
+					tabBarIcon: ({ color, focused }) => (
+						<Ionicons
+							name={focused ? "stats-chart" : "stats-chart-outline"}
+							size={24}
+							color={color}
+						/>
 					),
 				}}
 			/>
 			<Tabs.Screen
 				name="MesageScreen"
 				options={{
-					tabBarIcon: ({ color }) => (
-						<Ionicons name="chatbox-ellipses-outline" size={25} color={color} />
+					title: "Chat",
+					tabBarIcon: ({ color, focused }) => (
+						<Ionicons
+							name={focused ? "chatbubbles" : "chatbubbles-outline"}
+							size={24}
+							color={color}
+						/>
 					),
 				}}
 			/>
 			<Tabs.Screen
 				name="HistoryScreen"
 				options={{
-					tabBarIcon: ({ color }) => (
-						<MaterialIcons name={"history"} size={25} color={color} />
+					title: "History",
+					tabBarIcon: ({ color, focused }) => (
+						<Ionicons
+							name={focused ? "time" : "time-outline"}
+							size={24}
+							color={color}
+						/>
 					),
 				}}
 			/>

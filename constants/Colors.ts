@@ -17,3 +17,6 @@ export default {
     tabIconSelected: tintColorDark,
   },
 };
+
+// F2FE8D
+// 212121

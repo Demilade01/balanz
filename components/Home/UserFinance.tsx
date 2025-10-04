@@ -1,8 +1,87 @@
-import {View, StyleSheet, Text} from "react-native";
+import {View, StyleSheet, Text, ActivityIndicator} from "react-native";
 import {AntDesign, Entypo} from "@expo/vector-icons";
+import { useEffect, useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { syncService } from "../../lib/mono";
 
+
+interface Account {
+  id: string;
+  bank_name: string;
+  account_name: string;
+  balance: number;
+  currency: string;
+}
 
 const UserFinance = () => {
+    const { user } = useAuth();
+    const [totalBalance, setTotalBalance] = useState<number>(0);
+    const [accounts, setAccounts] = useState<Account[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        loadFinancialData();
+    }, [user]);
+
+    const loadFinancialData = async () => {
+        if (!user?.id) {
+            setLoading(false);
+            return;
+        }
+
+        try {
+            setLoading(true);
+
+            // Get user's accounts from Supabase
+            const accountsResult = await syncService.getUserAccounts(user.id);
+
+            if (accountsResult.success && accountsResult.data) {
+                const userAccounts = accountsResult.data as Account[];
+                setAccounts(userAccounts);
+
+                // Calculate total balance across all accounts
+                const total = userAccounts.reduce((sum, account) => sum + account.balance, 0);
+                setTotalBalance(total);
+            }
+        } catch (error) {
+            console.error('Error loading financial data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const formatCurrency = (amountMinor: number, currency = 'NGN') => {
+        const amount = amountMinor / 100; // Convert from minor units (kobo) to major units
+
+        switch (currency) {
+            case 'NGN':
+                return `₦${amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            case 'USD':
+                return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            default:
+                return `${currency} ${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+    };
+
+    if (loading) {
+        return (
+            <View style={styles.container}>
+                <View style={styles.leftContainer}>
+                    <Text style={{
+                        fontSize: 16,
+                        fontWeight: "600",
+                        color: "#303339"
+                    }}>
+                        Total Balance
+                    </Text>
+                    <View style={{ marginVertical: 8, alignItems: 'center' }}>
+                        <ActivityIndicator color="#fff" size="small" />
+                    </View>
+                </View>
+            </View>
+        );
+    }
+
     return (
         <View style={styles.container}>
             <View style={styles.leftContainer}>
@@ -19,7 +98,7 @@ const UserFinance = () => {
                     color: "#fff",
                     marginVertical:8
                 }}>
-                    $53,240.24
+                    {formatCurrency(totalBalance)}
                 </Text>
                 <View style={{
                     flexDirection: "row",
@@ -40,7 +119,7 @@ const UserFinance = () => {
                             fontWeight: "bold",
 
                         }}>
-                            $520.23
+                            {accounts.length} Account{accounts.length !== 1 ? 's' : ''}
                         </Text>
                     </View>
                     <View style={{
@@ -52,7 +131,7 @@ const UserFinance = () => {
                             fontSize: 12,
                             marginRight:2
                         }}>
-                            Cashback Saved
+                            Connected
                         </Text>
                         <Entypo name={"chevron-small-right"} size={28} color={"#999"}/>
                     </View>
