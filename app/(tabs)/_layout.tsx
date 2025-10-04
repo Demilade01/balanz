@@ -21,12 +21,17 @@ export default function TabLayout() {
 				headerShown: false,
 				tabBarStyle: {
 					backgroundColor: Colors[colorScheme ?? "light"].background,
-					borderTopColor: "#E5E5EA",
-					borderTopWidth: 0.5,
+					borderTopColor: Colors[colorScheme ?? "light"].borderColor,
+					borderTopWidth: 1,
 					height: 85,
 					paddingTop: 8,
 					paddingBottom: 8,
 					paddingHorizontal: 16,
+					shadowColor: '#000',
+					shadowOffset: { width: 0, height: -2 },
+					shadowOpacity: 0.1,
+					shadowRadius: 8,
+					elevation: 8,
 				},
 			}}
 		>
@@ -59,10 +64,10 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name="ChartScreen"
 				options={{
-					title: "Analytics",
+					title: "Insights",
 					tabBarIcon: ({ color, focused }) => (
 						<Ionicons
-							name={focused ? "stats-chart" : "stats-chart-outline"}
+							name={focused ? "analytics" : "analytics-outline"}
 							size={24}
 							color={color}
 						/>
@@ -70,25 +75,12 @@ export default function TabLayout() {
 				}}
 			/>
 			<Tabs.Screen
-				name="MesageScreen"
+				name="ProfileScreen"
 				options={{
-					title: "Chat",
+					title: "Profile",
 					tabBarIcon: ({ color, focused }) => (
 						<Ionicons
-							name={focused ? "chatbubbles" : "chatbubbles-outline"}
-							size={24}
-							color={color}
-						/>
-					),
-				}}
-			/>
-			<Tabs.Screen
-				name="HistoryScreen"
-				options={{
-					title: "History",
-					tabBarIcon: ({ color, focused }) => (
-						<Ionicons
-							name={focused ? "time" : "time-outline"}
+							name={focused ? "person" : "person-outline"}
 							size={24}
 							color={color}
 						/>
