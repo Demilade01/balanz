@@ -7,29 +7,37 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 import { syncService } from '../../lib/mono';
 import Colors from '../../constants/Colors';
 
 const BalanceCard = () => {
   const { user } = useAuth();
+  const router = useRouter();
   const [totalBalance, setTotalBalance] = useState<number>(0);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showBalance, setShowBalance] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadFinancialData();
   }, [user]);
 
-  const loadFinancialData = async () => {
+  const loadFinancialData = async (isRefresh = false) => {
     if (!user?.id) {
       setLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+
       const accountsResult = await syncService.getUserAccounts(user.id);
 
       if (accountsResult.success && accountsResult.data) {
@@ -44,7 +52,16 @@ const BalanceCard = () => {
       console.error('Error loading balance data:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const handleConnectAccount = () => {
+    router.push('/connect-bank');
+  };
+
+  const handleRefresh = () => {
+    loadFinancialData(true);
   };
 
   const formatCurrency = (amountMinor: number, currency = 'NGN') => {
@@ -88,13 +105,22 @@ const BalanceCard = () => {
     <View style={styles.container}>
       <View style={styles.balanceHeader}>
         <Text style={styles.balanceLabel}>Total Balance</Text>
-        <TouchableOpacity onPress={toggleBalanceVisibility} style={styles.eyeButton}>
-          <Ionicons
-            name={showBalance ? "eye-outline" : "eye-off-outline"}
-            size={20}
-            color={Colors.light.textSecondary}
-          />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity onPress={handleRefresh} style={styles.refreshButton}>
+            <Ionicons
+              name="refresh"
+              size={18}
+              color={Colors.light.textSecondary}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={toggleBalanceVisibility} style={styles.eyeButton}>
+            <Ionicons
+              name={showBalance ? "eye-outline" : "eye-off-outline"}
+              size={20}
+              color={Colors.light.textSecondary}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.balanceContainer}>
@@ -108,7 +134,7 @@ const BalanceCard = () => {
               {accounts.length} Account{accounts.length !== 1 ? 's' : ''}
             </Text>
           </View>
-          <TouchableOpacity style={styles.connectButton}>
+          <TouchableOpacity style={styles.connectButton} onPress={handleConnectAccount}>
             <Ionicons name="add-circle-outline" size={16} color={Colors.light.tint} />
             <Text style={styles.connectText}>Connect Account</Text>
           </TouchableOpacity>
@@ -170,6 +196,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.light.textSecondary,
     fontWeight: '500',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  refreshButton: {
+    padding: 4,
   },
   eyeButton: {
     padding: 4,
