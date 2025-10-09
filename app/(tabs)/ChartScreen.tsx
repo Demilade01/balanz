@@ -342,9 +342,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingHorizontal: 15,
+    paddingTop: 15,
+    paddingBottom: 15,
     backgroundColor: Colors.light.cardBackground,
   },
   headerLeft: {
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    gap: 8,
+    gap: 4,
   },
   periodButton: {
     flex: 1,
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
   },
   selectedPeriodText: {
-    color: 'white',
+    color: Colors.light.background,
     fontWeight: '600',
   },
   section: {

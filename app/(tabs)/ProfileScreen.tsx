@@ -283,10 +283,10 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: Colors.light.cardBackground,
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 30,
-    marginBottom: 20,
+    paddingHorizontal: 15,
+    paddingTop: 10,
+    paddingBottom: 15,
+    marginBottom: 10,
   },
   userInfo: {
     flexDirection: 'row',
@@ -297,8 +297,8 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   avatar: {
-    width: 80,
-    height: 80,
+    width: 50,
+    height: 50,
     borderRadius: 40,
     borderWidth: 3,
     borderColor: Colors.light.tint,
