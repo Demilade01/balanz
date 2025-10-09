@@ -22,6 +22,26 @@ interface QuickAction {
 const QuickActions = () => {
   const router = useRouter();
 
+  // Choose a readable text/icon color based on background brightness
+  const getReadableTextColor = (bgColor: string) => {
+    // Normalize hex like #RGB or #RRGGBB
+    let hex = bgColor.replace('#', '');
+    if (hex.length === 3) {
+      hex = hex.split('').map((c) => c + c).join('');
+    }
+    if (hex.length !== 6) {
+      // Fallback: use white on unknown color strings
+      return '#FFFFFF';
+    }
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    // Relative luminance approximation
+    const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    // If background is light, return dark text (app background). Otherwise white.
+    return luminance > 0.7 ? Colors.light.background : '#FFFFFF';
+  };
+
   const actions: QuickAction[] = [
     {
       id: 'transfer',
@@ -98,9 +118,13 @@ const QuickActions = () => {
       activeOpacity={0.8}
     >
       <View style={styles.actionIconContainer}>
-        <Ionicons name={action.icon} size={24} color={action.color} />
+        <Ionicons
+          name={action.icon}
+          size={24}
+          color={getReadableTextColor(action.backgroundColor)}
+        />
       </View>
-      <Text style={[styles.actionTitle, { color: action.color }]}>
+      <Text style={[styles.actionTitle, { color: getReadableTextColor(action.backgroundColor) }]}>
         {action.title}
       </Text>
     </TouchableOpacity>

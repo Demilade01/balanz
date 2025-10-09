@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    gap: 8,
+    gap: 4,
   },
   periodButton: {
     flex: 1,
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
   },
   selectedPeriodText: {
-    color: 'white',
+    color: Colors.light.background,
     fontWeight: '600',
   },
   section: {
