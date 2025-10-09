@@ -75,9 +75,9 @@ const ModernHeader = () => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.light.background,
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingHorizontal: 15,
+    paddingTop: 15,
+    paddingBottom: 15,
   },
   topRow: {
     flexDirection: 'row',
